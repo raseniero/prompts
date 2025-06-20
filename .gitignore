@@ -1,0 +1,250 @@
+# Comprehensive .gitignore for Prompt Engineering Project
+# Generated to prevent sensitive files, system files, and build artifacts
+
+# ===== SENSITIVE FILES =====
+# Environment variables and configuration
+.env
+.env.*
+!.env.example
+!.env.template
+*.env
+env.json
+config.json
+config.yml
+config.yaml
+secrets.*
+credentials.*
+private.*
+*.key
+*.pem
+*.cert
+*.crt
+auth.json
+database.json
+db.config
+connection.json
+settings.local.*
+.vault
+.secrets/
+mcp.json
+
+# API keys and tokens
+api_keys.*
+apikeys.*
+.api_key
+.api_keys
+token.json
+tokens.json
+.token
+.tokens
+oauth.*
+.oauth*
+
+# ===== MACOS SYSTEM FILES =====
+# macOS finder and system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# ===== DEPENDENCY DIRECTORIES =====
+# Node.js
+node_modules/
+jspm_packages/
+bower_components/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+ENV/
+.venv/
+.virtualenv/
+virtualenv/
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.conda/
+.pip/
+site-packages/
+
+# Ruby
+.bundle/
+vendor/bundle
+.gem/
+Gemfile.lock
+
+# Java
+target/
+.gradle/
+.m2/
+.ivy2/
+*.class
+*.jar
+*.war
+*.ear
+
+# Go
+vendor/
+.vendor/
+
+# Rust
+target/
+Cargo.lock
+
+# PHP
+vendor/
+composer.lock
+
+# .NET
+bin/
+obj/
+packages/
+
+# ===== BUILD & COMPILATION OUTPUTS =====
+# General build directories
+build/
+dist/
+out/
+output/
+release/
+debug/
+.build/
+
+# Compiled files
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+*.app
+*.ipa
+*.apk
+*.dex
+*.pyc
+
+# JavaScript/TypeScript
+*.min.js
+*.min.css
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+.webpack/
+.typescript-cache/
+
+# Coverage reports
+coverage/
+.coverage
+.nyc_output/
+htmlcov/
+lcov.info
+*.lcov
+.jest/
+
+# Documentation builds
+docs/_build/
+site/
+_site/
+public/
+
+# ===== LOG & TEMPORARY FILES =====
+# Log files
+*.log
+logs/
+log/
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+crash.log
+dev-debug.log
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*.sw?
+*~
+.cache/
+.pytest_cache/
+.sass-cache/
+*.pid
+*.seed
+*.pid.lock
+
+# Editor directories and files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+*.iml
+*.ipr
+*.iws
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+
+# Backup files
+*.bak
+*.backup
+*.old
+backup/
+backups/
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+*.7z
+archive/
+archives/
+
+# MCP and Task Master specific (keeping these visible for project management)
+# .mcp.json
+# .taskmaster/
+
+# AI Assistant specific directories (keeping these visible as they're part of the project)
+# ai_docs/
+# claude/
+# cursor/
+# windsurf/
+# CLAUDE.md
+# .windsurfrules
+# .roomodes
+# .cursor/
