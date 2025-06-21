@@ -27,6 +27,7 @@ settings.local.*
 .vault
 .secrets/
 mcp.json
+.mcp.json
 
 # API keys and tokens
 api_keys.*
