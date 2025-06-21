@@ -1,3 +1,0 @@
-# Hi
-
-- Say 'Hi World!'
