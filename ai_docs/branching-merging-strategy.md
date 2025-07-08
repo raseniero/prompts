@@ -15,5 +15,5 @@ This is a set of instructions to the AI Assistant for branching and merging stra
 * **Commit all changes to repo**
 * **Push repo to Github**
 * **Create a PR from the feature branch to the `main` branch**
-* **Assign the new PR to `raseniero`**
+* **Assign the PR to github user**
 * **Pause for PR Review and Approval**
