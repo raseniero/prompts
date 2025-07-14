@@ -17,7 +17,7 @@ Hi Claude! I need your help creating a complete, production-ready Next.js projec
 - Use App Router
 - Use Turbopack for `next dev`
 
-## 📁 Required File Structure
+## 📁 Required Folder & File Structure
 
 ```
 public/                   # Static assets
