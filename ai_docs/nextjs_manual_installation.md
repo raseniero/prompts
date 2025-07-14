@@ -4,8 +4,8 @@
 
 Before you begin, make sure your system meets the following requirements:
 
-* [Node.js 18.18](https://nodejs.org/) or later.
-* macOS, Windows (including WSL), or Linux.
+- [Node.js 18.18](https://nodejs.org/) or later.
+- macOS, Windows (including WSL), or Linux.
 
 ## Manual installation
 
@@ -48,13 +48,13 @@ Create an `app` folder. Then, inside `app`, create a `layout.tsx` file. This fil
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
       <body>{children}</body>
     </html>
-  )
+  );
 }
 ```
 
@@ -62,7 +62,7 @@ Create a home page `app/page.tsx` with some initial content:
 
 ```tsx filename="app/page.tsx"
 export default function Page() {
-  return <h1>Hello, Next.js!</h1>
+  return <h1>Hello, Next.js!</h1>;
 }
 ```
 
@@ -116,10 +116,10 @@ These options allow you to alias project directories to absolute paths, making i
 
 ```jsx
 // Before
-import { Button } from '../../../components/button'
+import { Button } from "../../../components/button";
 
 // After
-import { Button } from '@/components/button'
+import { Button } from "@/components/button";
 ```
 
 To configure absolute imports, add the `baseUrl` configuration option to your `tsconfig.json` or `jsconfig.json` file. For example:
