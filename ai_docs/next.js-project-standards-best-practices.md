@@ -1,667 +1,103 @@
-# **An AI-Collaborative Architecture: The Definitive Project Template for Next.js 15**
-
-### **Introduction: Building for the Future with Next.js 15**
-
-This report presents a definitive project template for building scalable, maintainable, and high-performance applications with Next.js version 15 and React 19\. The architecture detailed herein is engineered not only for human developer productivity but is also explicitly designed for seamless collaboration with advanced AI coding assistants. In an era where AI is becoming a core member of the development team, the structure of our projects must evolve to facilitate this new partnership.
-
-The core philosophy of this template is **Clarity as a Feature**. Every decision, from directory structure to tooling choices, is made to foster a "semantic architecture"—a project where the purpose of any file or folder is immediately apparent from its location and name. This predictability is paramount. For human developers, it reduces cognitive overhead and onboarding time. For AI assistants, it provides the critical context needed to generate accurate, idiomatic, and safe code, transforming the AI from a generic tool into a context-aware contributor.
-
-This document will guide you through every layer of the template. It begins with the foundational directory structure, establishing a logical map for the entire codebase. It then delves into the modern data and state management patterns that leverage the full power of Next.js's server-centric model. Following this, it prescribes a complete, production-ready toolchain for ensuring code quality, consistency, and robust testing. Finally, it culminates in a practical, actionable set of annotated configuration files and a comprehensive prompt designed to onboard an AI collaborator, such as Claude, onto any project built with this template.
-
-## **Section 1: The Foundational Architecture: A Blueprint for Clarity and Scale**
-
-The foundation of any scalable application is a logical and predictable structure. This section establishes the non-negotiable architectural elements that create a clear "map" of the codebase, eliminating ambiguity and providing a solid framework for growth.
-
-### **1.1 The src Directory: A Mandate for Clean Separation**
-
-The first and most fundamental decision in structuring a Next.js project is the adoption of a src directory. While Next.js can function without it, mandating its use is a critical best practice for any serious application.1 Placing all application source code within
-
-/src provides a clean and unambiguous separation between the code that developers write and the project's root-level configuration files (e.g., next.config.ts, package.json, tsconfig.json).2
-
-This separation offers several distinct advantages:
-
-- **Reduced Root Clutter:** It keeps the project's root directory clean and focused on configuration, making it easier to navigate.1
-- **Improved Tooling Integration:** Many development tools and scripts can be more easily configured to target the src directory, simplifying build and linting processes.
-- **Ecosystem Consistency:** It aligns the project with a widely accepted convention in the broader JavaScript and TypeScript ecosystems, making the project more familiar to new developers.1
-
-For an AI coding assistant, this structural decision is a powerful initial signal. It can confidently assume that all application logic, components, and utilities reside within /src, which significantly narrows its search scope when asked to modify or create files, leading to faster and more accurate code generation.
-
-### **1.2 The Anatomy of the Project Root and Core Directories**
-
-A well-organized project provides a clear purpose for every directory. This eliminates the "miscellaneous" folder problem, where developers are unsure where to place new files, leading to entropy over time. The following structure defines a clear contract for organization, serving as a quick-reference glossary for the entire project.
-
-| Path                     | Purpose                    | Key Principles                                                                                                       |
-| :----------------------- | :------------------------- | :------------------------------------------------------------------------------------------------------------------- |
-| /                        | Project Root               | Contains configuration files, package.json, and the src directory.                                                   |
-| /public                  | Static Assets              | For files served directly, like images, fonts, and robots.txt. Path is stable.                                       |
-| /src/app                 | Application Routes         | App Router implementation. File-system based routing, layouts, and pages.1                                           |
-| /src/app/(group)         | Route Groups               | Organizes routes logically (e.g., (auth), (marketing)) without affecting the URL path.1                              |
-| /src/app/api             | API Route Handlers         | For creating backend API endpoints. Defines GET, POST, etc., handlers in route.ts files.3                            |
-| /src/app/\[route\]/\_    | Private Co-located Folders | Folders prefixed with \_ (e.g., \_components, \_actions) are not routed. Used for co-locating route-specific logic.4 |
-| /src/components/ui       | Universal UI Components    | Stateless, highly reusable UI primitives (e.g., Button, Card, Input). Often from shadcn/ui.1                         |
-| /src/components/features | Shared Feature Components  | Domain-specific components shared across _multiple_ routes (e.g., ProductGrid, CheckoutForm).2                       |
-| /src/components/layout   | Layout Components          | Major structural elements like Header, Footer, Sidebar.2                                                             |
-| /src/lib                 | Core Libraries & Services  | Foundational code: DB clients (Prisma/Drizzle), API clients, auth helpers, singleton instances.1                     |
-| /src/lib/actions         | Global Server Actions      | 'use server' functions for mutations, accessible across the application.6                                            |
-| /src/lib/store           | Global State Management    | Location for the Zustand state store and related hooks.7                                                             |
-| /src/hooks               | Custom React Hooks         | Reusable hooks (e.g., useMediaQuery, useLocalStorage) that are not tied to a specific component.2                    |
-| /src/utils               | Utility Functions          | Simple, pure, stateless helper functions (e.g., formatters, validators).1                                            |
-| /src/styles              | Global & Theming Styles    | Contains globals.css, theme variables, etc..1                                                                        |
-| /src/types               | Global TypeScript Types    | Shared type definitions and interfaces used across the application.2                                                 |
-| /tests/unit              | Unit & Integration Tests   | Vitest tests for individual components, functions, and hooks. Mirrors the /src structure.8                           |
-| /tests/e2e               | End-to-End Tests           | Playwright tests simulating full user journeys across the application.9                                              |
-
-### **1.3 Mastering the App Router: Routes as Self-Contained Features**
-
-The Next.js App Router encourages a feature-based organization by mapping the file system directly to URL routes.2 This template extends that paradigm by treating each route segment as a self-contained micro-feature, achieved through aggressive co-location of related logic.
-
-The primary mechanism for this is the use of **private folders**. Any folder within the app directory prefixed with an underscore (e.g., \_components) is guaranteed by Next.js to be excluded from routing.5 This powerful feature allows us to place components, server actions, hooks, and utilities that are
-
-_only_ used by a specific route (and its children) directly alongside the page.tsx that needs them.4
-
-Consider a settings page at /dashboard/settings. The structure would be:
-
-/src/app/dashboard/settings/  
-├── \_actions/  
-│ └── update-profile.ts // Server Action for this page  
-├── \_components/  
-│ ├── ProfileForm.tsx // Component used only on this page  
-│ └── BillingInfo.tsx // Component used only on this page  
-├── \_hooks/  
-│ └── useBillingData.ts // Hook specific to this page  
-└── page.tsx // The page component itself
-
-This approach provides immense benefits for both scalability and collaboration. As an application grows, a single global /components directory can become a "component file explosion," making it impossible to know which components are safe to modify or delete.2 The co-location pattern solves this by creating clear boundaries. A developer working on the settings page knows that the components in
-
-/app/dashboard/settings/\_components are directly relevant and can be modified with confidence, drastically reducing cognitive load.
-
-This explicit context is a game-changer for AI collaboration. When an AI assistant is tasked with "adding a password change feature to the settings page," it doesn't need to perform a project-wide search for relevant files. It can infer with high probability that it should create a new component within the local \_components folder and a new server action within the local \_actions folder. This makes the AI's contributions faster, more accurate, and less prone to causing unintended side effects in other parts of the application. It elevates the AI from a general-purpose coder to a context-aware project specialist.
-
-### **1.4 A Scalable Component Model: ui, features, and layout**
-
-While co-location is preferred for route-specific logic, some components are designed for reuse across the application. To prevent these from becoming disorganized, this template defines a clear, three-tiered hierarchy within the global /src/components directory 2:
-
-1. **/src/components/ui**: This directory is for universal, stateless, and application-agnostic UI primitives. These are the fundamental building blocks of the design system: Button, Input, Card, Modal, Dialog, etc..1 They should be pure presentation and contain no business logic. This is the ideal location for components generated by libraries like  
-   shadcn/ui, which provides unstyled, copy-pasteable component code that you own and can customize.
-2. **/src/components/features**: This directory holds more complex, domain-specific components that encapsulate a piece of business logic and are shared across _multiple_ distinct routes. For example, a ProductCard component might be used on the homepage, a category page, and in search results. It is not universal like a button, but it is not specific to a single route. Other examples include UserAvatarWithProfile, ShoppingCartSummary, or ArticlePreview.2
-3. **/src/components/layout**: This directory is reserved for major structural components that define the overall chrome of the application, such as Header, Footer, Sidebar, and Navigation.2 These components are typically used within the root or nested  
-   layout.tsx files.
-
-### **1.5 The lib and utils Directories: The Central Nervous System**
-
-To avoid the "Utils Black Hole"—a single, monolithic utils.ts file that grows to thousands of lines—this template establishes a clear distinction between the /lib and /utils directories and mandates internal organization.2
-
-- **/src/lib**: This directory is for more complex, foundational, and often stateful or singleton-based code. It is the home for the application's core services.1
-  - /lib/db: Database connection clients and ORM instances (e.g., Prisma Client, Drizzle instance).
-  - /lib/auth: Authentication helpers, session management, and integrations with services like NextAuth.js or Lucia.
-  - /lib/api: Clients for interacting with third-party APIs.
-  - /lib/actions: Home for _globally reusable_ Server Actions.
-  - /lib/store: The global Zustand state management store.
-- **/src/utils**: This directory is strictly for simple, pure, and stateless helper functions. These functions should have no side effects and be easily testable in isolation.1
-  - /utils/formatters.ts: Functions for formatting dates, currency, etc.
-  - /utils/validators.ts: Simple data validation functions (distinct from schema validation with Zod).
-  - /utils/cn.ts: The cn utility for merging Tailwind CSS classes.
-
-This clear separation ensures that the application's core logic is organized and discoverable, while simple helper functions are kept distinct and easy to reuse.
-
-## **Section 2: The Modern Data and State Layer**
-
-Next.js 15, with its deep integration of React 19 and the App Router, champions a server-centric approach to application development. This section outlines the patterns for data and state management that align with this modern paradigm, prioritizing performance, security, and developer experience.
-
-### **2.1 Data Fetching Philosophy: Server-First, Client-When-Necessary**
-
-The fundamental principle of data fetching in this architecture is to perform it on the server by default. React Server Components (RSCs) are the primary vehicle for this approach.10 Fetching data on the server offers compelling advantages:
-
-- **Performance:** Data is fetched closer to the data source, reducing latency. The client receives a fully-rendered HTML payload, leading to faster initial page loads and a better user experience.10
-- **Security:** Sensitive information, such as database credentials and API keys, remains securely on the server and is never exposed to the client's browser.3
-- **SEO:** Search engine crawlers receive complete HTML content, which is optimal for indexing, unlike client-rendered applications that may present an empty shell initially.3
-- **Reduced Client-Side Code:** Moving data fetching logic to the server reduces the amount of JavaScript that needs to be downloaded and executed by the client.
-
-Client-side data fetching, using hooks like useEffect or libraries like SWR/React Query within a 'use client' component, is still a valuable pattern, but it should be reserved for specific use cases.12 These include:
-
-- Data that is highly dynamic and changes frequently after the initial page load (e.g., stock tickers, real-time chat messages).
-- Data that is specific to a user's interaction on the client (e.g., fetching search results as a user types).
-- Data that is not critical for the initial render and can be loaded lazily.
-
-### **2.2 Practical Data Fetching Patterns in Next.js 15**
-
-This template advocates for a set of clear, idiomatic patterns for handling data.
-
-- **Server Components with async/await**: The default and simplest pattern for fetching data needed for a page's initial render is to make the page component async and use await with the native fetch API.11 React 19 extends  
-  fetch with automatic request deduplication. If multiple components in the same render tree request the same URL, React will intelligently make only one network request and share the result, eliminating concerns about redundant fetches.13
-- **Caching and Revalidation**: Next.js 15 introduces a significant change: GET requests made via fetch in Server Components and in Route Handlers are **uncached by default** (cache: 'no-store').15 This ensures data freshness but requires developers to be explicit about caching. To opt into caching, you can use:
-  - fetch(url, { cache: 'force-cache' }): Caches the data indefinitely.12
-  - fetch(url, { next: { revalidate: 3600 } }): Implements time-based revalidation, fetching new data at most once every hour.10
-  - fetch(url, { next: { tags: \['my-tag'\] } }): Tags a fetch request for on-demand revalidation using revalidateTag() in a Server Action or API route.10
-- **Parallel Data Fetching**: To avoid "request waterfalls" where sequential await calls block each other, independent data dependencies for a page should be fetched in parallel using Promise.all.11 This ensures that all data requests are initiated simultaneously, significantly reducing the total data-loading time for the page.
-- **Server Actions for Mutations**: For any operation that modifies data (e.g., creating, updating, or deleting), **Server Actions** are the canonical solution.6 These are server-side functions that can be invoked directly from client components, typically through form submissions or button clicks.
-  - **Security:** Server Actions are secure by design. They execute on the server, never in the browser, so they can safely contain database queries and secret credentials.6
-  - **Validation:** It is absolutely critical to treat all input to a Server Action as untrusted. All data coming from the client must be validated on the server before being used in a database query. Libraries like Zod are highly recommended for this purpose.6
-
-### **2.3 A Pragmatic Guide to State Management**
-
-The introduction of React Server Components necessitates a new mental model for state management. The old approach of placing everything in a single global client-side store is no longer viable or desirable. This template codifies a clear set of rules for handling state 17:
-
-1. **Rule \#1: No Global Stores on the Server.** A global variable representing a store on the server can lead to data contamination between different users' concurrent requests. State management libraries must be instantiated on a per-request basis to ensure isolation.
-2. **Rule \#2: RSCs Display Immutable Data.** Server Components are for fetching and displaying data that is considered immutable for the duration of a user's session on that page (e.g., a blog post's content, product details). They do not have "state" in the traditional React sense.
-3. **Rule \#3: Client Components Manage Mutable State.** Any state that changes in response to user interaction (e.g., form inputs, toggles, shopping cart contents) belongs in components marked with the 'use client' directive.
-
-Following these rules, developers should adopt a "least powerful tool first" hierarchy for managing state:
-
-1. **URL State:** For state that should be bookmarkable, shareable, and reflected in the URL (e.g., filters, search queries, pagination), use URL Search Parameters.
-2. **Local Component State (useState, useReducer):** This is the default for state that is confined to a single component and is not needed by its parents or siblings.18
-3. **React Context:** For sharing state across a small, localized subtree of components (e.g., theme state within a settings panel) where prop-drilling would be cumbersome.18 Avoid using Context for high-frequency updates, as it can cause performance issues.
-4. **Global State Library (Zustand):** This should only be used when state needs to be shared across disparate parts of the application that do not have a convenient shared parent, such as user authentication status or the contents of a shopping cart.7
-
-### **2.4 Selecting a Global State Manager: Zustand vs. Jotai**
-
-For cases requiring a global state manager, the modern landscape has moved beyond the boilerplate-heavy patterns of Redux. The research points to Zustand and Jotai as the leading lightweight, performant alternatives.7 While both are excellent, this template explicitly recommends
-
-**Zustand** for its simplicity and alignment with the goal of an easily understood, collaborative architecture.
-
-| Feature/Aspect            | Zustand                                                                                           | Jotai                                                                                     |
-| :------------------------ | :------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------------- |
-| **Core Concept**          | Single store with hook-based access (top-down).21                                                 | Atomic state model with composable atoms (bottom-up).20                                   |
-| **API Style**             | Define a store object with state and actions. Access with useStore(state \=\> state.piece).7      | Define individual atoms. Access with useAtom(myAtom).20                                   |
-| **Bundle Size**           | \~4KB (minified \+ gzipped).19                                                                    | \~4KB (minified \+ gzipped).19                                                            |
-| **Performance Model**     | Optimizes re-renders via selectors. Components re-render only if the selected state changes.7     | Automatic, granular re-renders. Components re-render only if a subscribed atom changes.20 |
-| **Developer Tools**       | Integrates with Redux DevTools for time-travel debugging.21                                       | Integrates with React DevTools for visualizing atom dependencies.21                       |
-| **Server-Side Rendering** | Simple to implement; create a new store instance for each server request to avoid data leakage.17 | Integrates deeply with React Suspense for handling async atoms.21                         |
-
-While Jotai's atomic model offers incredibly granular performance optimizations, its bottom-up approach represents a paradigm shift that can have a steeper learning curve for teams accustomed to centralized stores like Redux or Context.21
-
-Zustand's model, in contrast, is conceptually simpler and more familiar. It is essentially a lightweight, unopinionated version of a Redux store, but without the mandatory boilerplate of actions, reducers, and dispatchers.7 The mental model is straightforward: "there is a single object that holds our global state."
-
-This simplicity and predictability make Zustand the superior choice for a template designed for broad organizational adoption and AI collaboration. It is easier to teach, easier to reason about, and provides a clear, single location (/src/lib/store) for any developer—human or AI—to find and modify global state. This constraint reduces ambiguity and aligns perfectly with the template's core philosophy of "Clarity as a Feature."
-
-## **Section 3: The Toolchain for Quality and Velocity**
-
-A robust project template extends beyond file structure; it encompasses the entire toolchain that ensures code quality, consistency, and a productive developer experience. This section prescribes a set of modern, best-in-class tools for styling, testing, and code hygiene.
-
-### **3.1 Styling Strategy: Utility-First with Tailwind CSS and shadcn/ui**
-
-For styling, this template advocates a utility-first approach, which has become the industry standard for building modern, maintainable user interfaces.
-
-- **Tailwind CSS**: Tailwind CSS is the recommended primary styling engine. Instead of writing custom CSS classes, developers compose interfaces by applying pre-existing utility classes directly in the markup.23 This approach offers significant benefits:
-  - **Development Speed:** It dramatically speeds up development by eliminating the need to switch contexts between HTML/JSX and CSS files.23
-  - **Consistency:** It enforces a consistent design system by providing a constrained set of design tokens (spacing, colors, typography).
-  - **Performance:** Tailwind automatically removes all unused CSS classes during the build process, resulting in the smallest possible CSS bundle.23
-  - **Maintainability:** Styles are co-located with their elements, making components truly self-contained and preventing style collisions or unintended side effects from global stylesheet changes.23
-- **shadcn/ui**: This template recommends using shadcn/ui as the foundation for the component library.16 Crucially,  
-  shadcn/ui is not a traditional component library that you install as a dependency. Instead, it provides a set of beautifully designed, accessible component "recipes" that you copy and paste directly into your project.24 The code becomes part of your own codebase, located in  
-  /src/components/ui. This approach is ideal for a long-term project because it avoids vendor lock-in and gives the team complete ownership and control to modify the components as needed.
-- **Hybrid Styling**: While utility classes cover most use cases, there are times when custom CSS is necessary. For these one-off situations, this template supports **CSS Modules**. By creating a file named \*.module.css, developers can write traditional, scoped CSS that won't conflict with any other styles in the application.1 This hybrid approach offers the best of both worlds: the speed of utilities and the power of custom CSS when required.
-
-### **3.2 A Comprehensive Testing Pyramid**
-
-A reliable application requires a multi-layered testing strategy. This template adopts the "Testing Trophy" model, which balances different types of tests to maximize confidence and minimize cost.25
-
-#### **3.2.1 Static & Unit/Integration Testing: TypeScript, Vitest, and React Testing Library**
-
-The base of the testing pyramid consists of fast, targeted tests that run frequently during development.
-
-- **TypeScript**: The first line of defense is a strong type system. TypeScript catches an entire class of errors at compile time, long before the code is ever run.26
-- **Vitest**: For the test runner, this template strongly recommends **Vitest** over the more traditional Jest. While Jest is a capable tool, Vitest offers a superior developer experience for modern projects.9 It leverages the speed of Vite's engine, provides a nearly identical API to Jest for easy migration, and requires minimal configuration.8
-- **React Testing Library (RTL)**: RTL is the standard for testing React components. Its guiding principle is to test components in a way that resembles how a user would interact with them, focusing on behavior rather than implementation details.25 This leads to more resilient tests that don't break during minor refactors.
-
-Unit and integration tests written with Vitest and RTL should be placed in a /tests/unit directory that mirrors the /src directory structure, ensuring tests are easy to locate.
-
-#### **3.2.2 End-to-End Testing: A Clear Case for Playwright**
-
-At the top of the pyramid are end-to-end (E2E) tests, which simulate complete user journeys through the live application. For this critical task, the research and industry trends point decisively to **Playwright** as the superior choice over its main competitor, Cypress.28
-
-| Criterion              | Playwright                                                                                        | Cypress                                                                                     |
-| :--------------------- | :------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------ |
-| **Architecture**       | External control via Chrome DevTools Protocol (CDP). More realistic simulation.28                 | Runs _inside_ the browser's execution loop. Can lead to discrepancies.28                    |
-| **Browser Support**    | All modern engines: Chromium (Chrome, Edge), Firefox, and WebKit (Safari).30                      | Limited. Primarily Chromium-based. WebKit support is experimental and less mature.28        |
-| **Parallel Execution** | **Free and built-in**. Drastically reduces CI/CD run times and costs.30                           | **Paid feature** via Cypress Cloud Dashboard or requires complex self-hosted workarounds.30 |
-| **Async Handling**     | Uses standard JavaScript async/await. Familiar and flexible for developers.28                     | Uses a custom, non-standard command chain (.then()). Can be confusing and limiting.28       |
-| **Multi-Tab/iFrame**   | Native, robust support for multiple tabs, popups, and iframes. Essential for modern auth flows.30 | Not supported or very difficult to work with due to its in-browser architecture.30          |
-| **Tooling Ecosystem**  | Backed by Microsoft, rapidly evolving, with features like Code Gen and Trace Viewer.30            | Mature ecosystem, but the core architecture imposes fundamental limitations.34              |
-
-The choice of Playwright is not merely a preference; it is a strategic decision based on its fundamentally more capable architecture. Playwright's external control model allows it to automate the browser in the same way a real user would, without injecting itself into the application's context. This is what enables its superior cross-browser support and its native ability to handle complex, multi-tab scenarios like OAuth authentication flows—a common requirement that is notoriously difficult to test in Cypress.
-
-Furthermore, Playwright's inclusion of free, built-in test parallelization is a massive advantage for any project concerned with CI/CD costs and feedback loop times.30 For a template that must be robust, future-proof, and capable of testing any feature a modern web application might require, Playwright is the clear and definitive choice.
-
-### **3.3 Ensuring Code Consistency: ESLint, Prettier, and Commit Hooks**
-
-To maintain a clean and consistent codebase across a team of developers (including AI), an automated system for code hygiene is essential.
-
-- **ESLint & Prettier**: ESLint is used for static analysis to find potential bugs and enforce coding conventions, while Prettier is an opinionated code formatter that ensures a consistent style. This template uses the modern eslint.config.mjs flat configuration format, which is the new standard for ESLint.35
-- **Commit Hooks**: To automate this process, the template recommends using a tool like **Husky** or **Lefthook** in combination with **lint-staged**.37 This setup creates a pre-commit hook that automatically runs ESLint and Prettier on any staged files before a commit is allowed. This guarantees that no poorly formatted or lint-error-containing code ever enters the version control history, enforcing quality at the source.
-
-## **Section 4: The Template in Practice: Annotated Configuration Files**
-
-This section provides the complete, production-ready code for the key configuration files that underpin the template. Each file is exhaustively commented to explain the rationale behind every setting, serving as both a practical boilerplate and a learning resource.
-
-### **4.1 next.config.ts**
-
-This file configures the core behavior of the Next.js framework. Next.js 15 introduced stable support for using TypeScript in this file, which is a significant improvement for type safety.15
-
-TypeScript
-
-// /next.config.ts
-
-import type { NextConfig } from 'next';
-
-/\*\*  
- \* @type {import('next').NextConfig}  
- \*  
- \* The configuration for the Next.js application.  
- \* Next.js 15 supports using a TypeScript file for configuration, providing type safety.  
- \* @see https://nextjs.org/docs/app/api-reference/config/next-config-js  
- \*/  
-const nextConfig: NextConfig \= {  
- // React's Strict Mode is a development-only feature that helps identify potential problems  
- // in an application. It activates additional checks and warnings for its descendants.  
- // It is highly recommended to keep this enabled. \[39\]  
- reactStrictMode: true,
-
-// Configuration for the ESLint linter.  
- eslint: {  
- // By default, Next.js lints the \`pages\`, \`app\`, \`components\`, \`lib\`, and \`src\` directories.  
- // This configuration extends linting to our custom \`/tests\` directory during \`next build\`. \[40\]  
- dirs: \['src', 'tests'\],  
- },
-
-// Experimental features that can be opted into. Use with caution as APIs may change.  
- experimental: {  
- // Enables the \`after()\` API, which allows scheduling work to be processed \*after\* a response  
- // has finished streaming. Useful for tasks like logging or analytics that shouldn't block  
- // the main response. \[15\]  
- after: true,
-
-    // The React Compiler is an experimental compiler from Meta that automatically optimizes
-    // React code, reducing the need for manual memoization with \`useMemo\` and \`useCallback\`.
-    // Enabling this can lead to performance improvements and simpler code. \[15\]
-    // compiler: true, // Uncomment when the compiler is stable and widely adopted.
-
-},
-
-// In Next.js 15, GET Route Handlers are uncached by default. This configuration is an example  
- // of how you could opt back into the previous caching behavior if needed, though the  
- // recommended approach is to be explicit with \`fetch\` caching options. \[15\]  
- // experimental: {  
- // staleTimes: {  
- // dynamic: 30, // Cache dynamic pages for 30 seconds  
- // static: 180, // Cache static pages for 180 seconds  
- // },  
- // },  
-};
-
-export default nextConfig;
-
-### **4.2 tsconfig.json**
-
-This file configures the TypeScript compiler (tsc), defining how it should check and transpile the project's code. A well-configured tsconfig.json is the foundation of a type-safe application.
-
-JSON
-
-// /tsconfig.json  
-{  
- "compilerOptions": {  
- /\* Type Checking \*/  
- "strict": true, // Enables all strict type-checking options. This is the cornerstone of type safety. \[41\]  
- "noImplicitAny": true, // Raise error on expressions and declarations with an implied 'any' type.  
- "strictNullChecks": true, // When true, \`null\` and \`undefined\` have their own distinct types.  
- "noUnusedLocals": true, // Report errors on unused local variables.  
- "noUnusedParameters": true, // Report errors on unused parameters.  
- "noFallthroughCasesInSwitch": true, // Report errors for fallthrough cases in switch statement.
-
-    /\* Modules \*/
-    "module": "esnext", // Specify what module code is generated. 'esnext' allows for modern module features.
-    "moduleResolution": "bundler", // The recommended mode for modern bundlers like Webpack/Turbopack. It aligns with how Node.js resolves modules. \[42\]
-    "resolveJsonModule": true, // Allows importing \`.json\` files.
-    "allowImportingTsExtensions": true, // Required for \`moduleResolution: "bundler"\` when using TypeScript files with extensions.
-
-    /\* JavaScript Support \*/
-    "allowJs": true, // Allow JavaScript files to be compiled.
-    "checkJs": true, // Report errors in.js files.
-
-    /\* Emit \*/
-    "noEmit": true, // Do not emit output files (transpilation is handled by Next.js's compiler). \[42\]
-    "incremental": true, // Enable incremental compilation, speeding up subsequent builds. \[38\]
-
-    /\* Interop Constraints \*/
-    "esModuleInterop": true, // Enables compatibility with CommonJS modules.
-    "forceConsistentCasingInFileNames": true, // Ensure that casing is correct in imports.
-    "isolatedModules": true, // Ensures that each file can be transpiled without relying on other imports.
-
-    /\* Language and Environment \*/
-    "target": "es5", // The language version for emitted JavaScript. 'es5' ensures broad browser compatibility.
-    "lib": \["dom", "dom.iterable", "esnext"\], // Specifies the library files to be included in the compilation.
-    "jsx": "preserve", // Do not transform JSX. Next.js's compiler handles this.
-
-    /\* Path Aliases \*/
-    "baseUrl": ".", // Base directory to resolve non-absolute module names.
-    "paths": {
-      "@/\*": \["./src/\*"\] // Sets up the '@/' alias to point to the 'src' directory for cleaner imports. \[42\]
-    },
-
-    /\* Plugins \*/
-    "plugins":
-
-},  
- "include": \[  
- "next-env.d.ts",  
- ".next/types/\*\*/\*.ts",  
- "\*\*/\*.ts",  
- "\*\*/\*.tsx",  
- "\*\*/\*.cjs",  
- "\*\*/\*.mjs"  
- \],  
- "exclude": \["node_modules"\]  
-}
-
-### **4.3 eslint.config.mjs**
-
-This file configures ESLint using the modern "flat config" format. It combines rules from multiple plugins to enforce a high standard of code quality and consistency.
-
-JavaScript
-
-// /eslint.config.mjs
-
-import { FlatCompat } from '@eslint/eslintrc';  
-import path from 'node:path';  
-import { fileURLToPath } from 'node:url';  
-import js from '@eslint/js';  
-import tsEslint from 'typescript-eslint';  
-import react from 'eslint-plugin-react';  
-import reactHooks from 'eslint-plugin-react-hooks';  
-import tailwind from 'eslint-plugin-tailwindcss';  
-import unicorn from 'eslint-plugin-unicorn';  
-import globals from 'globals';
-
-// Recreate the \`\_\_dirname\` constant, which is not available in ES modules.  
-const \_\_filename \= fileURLToPath(import.meta.url);  
-const \_\_dirname \= path.dirname(\_\_filename);
-
-// FlatCompat is a utility to use legacy \`.eslintrc\` format configs in the new flat config.  
-// This is necessary for the \`eslint-config-next\` plugin, which has not fully migrated yet. \[35, 36\]  
-const compat \= new FlatCompat({  
- baseDirectory: \_\_dirname,  
-});
-
-/\*\* @type {import('eslint').Linter.FlatConfig} \*/  
-export default \[  
- // Global ignores  
- {  
- ignores: \['node_modules/', '.next/', 'dist/'\],  
- },
-
-// JavaScript recommended rules  
- js.configs.recommended,
-
-// TypeScript recommended rules  
- ...tsEslint.configs.recommended,
-
-// React recommended rules  
- {  
- files: \['\*\*/\*.{ts,tsx}'\],  
- plugins: {  
- react,  
- 'react-hooks': reactHooks,  
- },  
- rules: {  
- ...react.configs.recommended.rules,  
- ...reactHooks.configs.recommended.rules,  
- 'react/react-in-jsx-scope': 'off', // Not needed with Next.js 15 and React 19  
- 'react/prop-types': 'off', // Handled by TypeScript  
- },  
- settings: {  
- react: {  
- version: 'detect', // Automatically detect the React version  
- },  
- },  
- },
-
-// Tailwind CSS plugin rules  
- ...tailwind.configs.recommended,
-
-// Unicorn plugin for more opinionated, powerful rules  
- unicorn.configs\['flat/recommended'\],
-
-// Next.js core web vitals and recommended rules, loaded via FlatCompat  
- ...compat.config({  
- extends: \['next/core-web-vitals'\],  
- }),
-
-// Global settings for all files  
- {  
- languageOptions: {  
- globals: {  
- ...globals.browser,  
- ...globals.node,  
- React: 'readonly',  
- },  
- },  
- },  
-\];
-
-### **4.4 vitest.config.mts**
-
-This file configures Vitest for unit and integration testing. The .mts extension is used for TypeScript ES modules.
-
-TypeScript
-
-// /vitest.config.mts
-
-import { defineConfig } from 'vitest/config';  
-import react from '@vitejs/plugin-react';  
-import tsconfigPaths from 'vite-tsconfig-paths';
-
-/\*\*  
- \* @see https://vitest.dev/config/  
- \*/  
-export default defineConfig({  
- plugins:,  
- test: {  
- // The environment to run tests in. 'jsdom' simulates a browser environment. \[8\]  
- environment: 'jsdom',
-
-    // Expose global APIs (describe, it, expect) so they don't need to be imported in every test file.
-    globals: true,
-
-    // A file to run before each test file. Used for global setup. \[8\]
-    setupFiles: './tests/unit/setup.ts',
-
-    // Configuration for test coverage reporting.
-    coverage: {
-      provider: 'v8',
-      reporter: \['text', 'json', 'html'\],
-      exclude: \[
-        'node\_modules/',
-        'tests/',
-        '.next/',
-        '\*\*/.\*.js',
-        '\*\*/\*.config.\*',
-        '\*\*/main.ts',
-        '\*\*/types.ts',
-      \],
-    },
-
-},  
-});
-
-### **4.5 playwright.config.ts**
-
-This file configures Playwright for end-to-end testing, defining browser projects, server settings, and test execution options.
-
-TypeScript
-
-// /playwright.config.ts
-
-import { defineConfig, devices } from '@playwright/test';
-
-/\*\*  
- \* @see https://playwright.dev/docs/test-configuration  
- \*/  
-export default defineConfig({  
- testDir: './tests/e2e',  
- // The maximum time one test can run for.  
- timeout: 30 \* 1000,  
- expect: {  
- // The maximum time \`expect\` should wait for a condition to be met.  
- timeout: 5000,  
- },  
- // Run tests in files in parallel. \[30\]  
- fullyParallel: true,  
- // Fail the build on CI if you accidentally left \`test.only\` in the source code.  
- forbidOnly:\!\!process.env.CI,  
- // Retry on CI only.  
- retries: process.env.CI? 2 : 0,  
- // Opt out of parallel tests on CI.  
- workers: process.env.CI? 1 : undefined,  
- // Reporter to use.  
- reporter: 'html',
-
-// Shared settings for all the projects below.  
- use: {  
- // Base URL to use in actions like \`await page.goto('/')\`.  
- baseURL: 'http://localhost:3000',
-
-    // Collect trace when retrying the failed test.
-    trace: 'on-first-retry',
-
-},
-
-// Configure projects for major browsers. \[30\]  
- projects: },  
- },  
- {  
- name: 'firefox',  
- use: {...devices },  
- },  
- {  
- name: 'webkit',  
- use: {...devices },  
- },  
- \],
-
-// Run a local dev server before starting the tests.  
- webServer: {  
- command: 'npm run dev',  
- url: 'http://localhost:3000',  
- reuseExistingServer:\!process.env.CI,  
- },  
-});
-
-## **Section 5: The AI Collaborator: A Contextual Prompt for Claude**
-
-This section provides a comprehensive "system prompt" designed to onboard an AI coding assistant, specifically Claude, to a project using this template. Providing this context at the beginning of a development session will enable the AI to act as an expert-level contributor that understands and adheres to the project's specific architecture and conventions.
-
+---
+description: Coding Standards & Rules for Nextjs 15 and React 19
+globs: **/*.tsx, **/*.ts, **/*.js, **/*.jsx
+alwaysApply: false
 ---
 
-**(Copy and paste the following text into your AI chat interface as a contextual prompt)**
+# Project Structure And App Router
 
-You are an expert full-stack developer specializing in Next.js 15 and React 19\. You are joining our team and will be contributing to a project built on a specific, well-defined architectural template. Your primary goal is to write clean, efficient, and maintainable code that **strictly adheres** to our established patterns. Your adherence to these conventions is critical for maintaining the project's quality and consistency.
+- Use the App Router (`app` directory) in Next.js 15
+- Co-locate route handlers, loading and error states, and page-level components within the `app` directory
+- Use route groups (parentheses) to organize without affecting URLs
+- Use parallel or intercepting routes for complex layouts and modals
+- Place API route handlers in `app/api`
 
-### **Core Architectural Principles**
+# Server Components
 
-1. **Server-First Mentality:** We use React Server Components (RSCs) by default. Data fetching for initial page loads happens in async Page components on the server. Client Components ('use client') are used only for interactivity and client-side state.
-2. **Aggressive Co-location:** Logic specific to a route (components, actions, hooks) is placed inside private \_ folders (e.g., \_components/) within that route's directory in /src/app. This keeps features self-contained.
-3. **Component Hierarchy:** We have a strict hierarchy for component placement:
-   - /src/components/ui: Universal, stateless UI primitives (e.g., Button, Input).
-   - /src/components/features: Shared, domain-specific components used across multiple pages.
-   - /src/app/\[route\]/\_components: Components used _only_ by a specific route and its children.
-4. **Data Mutations via Server Actions:** All data modifications (CUD operations) are handled by Server Actions ('use server'). These actions must validate their inputs using Zod.
-5. **Utility-First Styling:** We use Tailwind CSS for all styling.
+- Default to Server Components for data fetching and rendering
+- Keep them free of client-side hooks or browser APIs
+- Use `Suspense` boundaries for streaming and granular loading states
+- Use `generateMetadata` in `layout.tsx` or `page.tsx` for dynamic SEO metadata
+- Prefer `fetch` with `revalidate` options for caching in Server Components
+- Implement `generateStaticParams` for static builds of dynamic routes
+- Use `unstable_noStore` for fully dynamic, non-cached rendering
+- Use `Promise.all` for parallel data fetching and `React.cache` for request deduplication
 
-### **Project Directory Structure Guide**
+# Client Components
 
-Refer to this guide to determine where to place new files:
+- Mark Client Components with `"use client"` at the top
+- Use `next/navigation` hooks such as `useRouter` and `usePathname` instead of `next/router`
+- Handle form state with `useFormStatus`, `useFormState`, and `useOptimistic` when using Server Actions
+- Include client-specific logic like user interaction and browser APIs here
 
-- **Routes & Pages:** /src/app/
-- **API Endpoints:** /src/app/api/
-- **Route-Specific Components/Actions:** /src/app/\[route\]/\_components/, /src/app/\[route\]/\_actions/
-- **Universal UI Primitives:** /src/components/ui/
-- **Shared Feature Components:** /src/components/features/
-- **Global Layout Components:** /src/components/layout/
-- **Database/Auth/API Clients:** /src/lib/
-- **Global Server Actions:** /src/lib/actions/
-- **Global State (Zustand):** /src/lib/store/
-- **Reusable Custom Hooks:** /src/hooks/
-- **Stateless Helper Functions:** /src/utils/
-- **Global Styles:** /src/styles/
-- **Unit/Integration Tests (Vitest):** /tests/unit/
-- **End-to-End Tests (Playwright):** /tests/e2e/
+# Data Fetching
 
-### **Task-Based Instructions & How-To Guides**
+- Use the built-in `fetch` in Server Components for data retrieval
+- Pass caching strategies with `fetch(url, { next: { revalidate: <seconds> } })`
+- Keep external requests minimal if deploying to serverless environments
+- Avoid fetching in Client Components if it can be done on the server
 
-Follow these procedures for common tasks:
+# Route Handlers
 
-- **To create a new page at /dashboard/analytics:**
-  1. Create a new folder: /src/app/dashboard/analytics/.
-  2. Add a page.tsx file inside it. This component should be a Server Component by default.
-- **To add a component used ONLY on the analytics page:**
-  1. Create a folder: /src/app/dashboard/analytics/\_components/.
-  2. Create your component file inside, e.g., Chart.tsx.
-  3. Import it into page.tsx using a relative path: import Chart from './\_components/Chart';.
-- **To create a new, globally reusable UI component (e.g., an Avatar):**
-  1. Create a new folder: /src/components/ui/avatar/.
-  2. Create Avatar.tsx inside. It must be a Client Component ('use client') and should be stateless.
-- **To fetch initial data for a page:**
-  1. Make the page.tsx component async: export default async function AnalyticsPage() {... }.
-  2. Use await fetch(...) directly inside the component.
-  3. **DO NOT** use useEffect or client-side libraries like SWR/React Query for initial data fetching.
-- **To handle a form submission:**
-  1. Create a Server Action in a \_actions.ts file co-located with the route (e.g., /src/app/settings/\_actions/update-profile.ts).
-  2. The action must start with the 'use server'; directive.
-  3. Define a Zod schema for the form inputs and validate the data within the action before performing any database operations.
-  4. Import the action into your form component and pass it to the \<form action={...}\> prop.
-- **To add a new piece of global state (e.g., user preferences):**
-  1. Locate the Zustand store at /src/lib/store/index.ts.
-  2. Add the new state property and its updater function to the create call.
+- Replace deprecated `pages/api` routes with Route Handlers under `app/api`
+- `GET` handlers are static by default unless otherwise configured
+- Validate incoming data and use proper CORS or security measures
+- Support JSON, text, and other file responses
 
-### **Code Style and Critical Guardrails**
+# Server Actions
 
-- **Path Aliases:** ALWAYS use the @/ path alias for imports from the /src directory (e.g., import { Button } from '@/components/ui/button';). NEVER use long relative paths like ../../../components/ui/button.
-- **Server/Client Boundary:** NEVER use browser-only APIs (like window, document, localStorage) in Server Components or Server Actions. This will cause a runtime error. All such code must be inside a 'use client' component. 6
-- **Testing:** When creating new components or features, you are expected to provide corresponding tests. Unit tests go in /tests/unit, and E2E tests for user flows go in /tests/e2e.
+- Define Server Actions with the `use server` directive
+- Call them from both Server and Client Components for data mutations
+- Use `useFormStatus` and `useFormState` in Client Components to track form submissions
+- Use `useOptimistic` to update the UI optimistically before server confirmation
 
-By following these guidelines, you will be a highly effective member of our team. Let's start building.
+# Middleware And Edge Runtime
 
-#### **Works cited**
+- Use `middleware.ts` for route interception, authentication, redirects, and rewrites
+- Use the Edge Runtime for faster startup and location-based personalization
+- Handle cookies, headers, and dynamic rewrites in `middleware`
+- Be mindful of constraints when running at the edge
 
-1. The Ultimate Guide to Organizing Your Next.js 15 Project Structure ..., accessed July 7, 2025, [https://www.wisp.blog/blog/the-ultimate-guide-to-organizing-your-nextjs-15-project-structure](https://www.wisp.blog/blog/the-ultimate-guide-to-organizing-your-nextjs-15-project-structure)
-2. Best Practices for Organizing Your Next.js 15 2025 \- DEV Community, accessed July 7, 2025, [https://dev.to/bajrayejoon/best-practices-for-organizing-your-nextjs-15-2025-53ji](https://dev.to/bajrayejoon/best-practices-for-organizing-your-nextjs-15-2025-53ji)
-3. Comprehensive Guide to Next.js 15 App Router | by Abdullah Muhammad \- Stackademic, accessed July 7, 2025, [https://blog.stackademic.com/comprehensive-guide-to-next-js-15-app-router-64e967d700f8](https://blog.stackademic.com/comprehensive-guide-to-next-js-15-app-router-64e967d700f8)
-4. How do you structure your project files when using App Router? : r/nextjs \- Reddit, accessed July 7, 2025, [https://www.reddit.com/r/nextjs/comments/1jfr4q0/how_do_you_structure_your_project_files_when/](https://www.reddit.com/r/nextjs/comments/1jfr4q0/how_do_you_structure_your_project_files_when/)
-5. What is the best way of organizing the file structure of next 15 project with app router? : r/nextjs \- Reddit, accessed July 7, 2025, [https://www.reddit.com/r/nextjs/comments/1ig4qw8/what_is_the_best_way_of_organizing_the_file/](https://www.reddit.com/r/nextjs/comments/1ig4qw8/what_is_the_best_way_of_organizing_the_file/)
-6. Nextjs 15 — Actions Best Practice | by Lior Amsalem \- Medium, accessed July 7, 2025, [https://medium.com/@lior_amsalem/nextjs-15-actions-best-practice-207ef6a2e52a](https://medium.com/@lior_amsalem/nextjs-15-actions-best-practice-207ef6a2e52a)
-7. Mastering State Management with Zustand in Next.js and React \- DEV Community, accessed July 7, 2025, [https://dev.to/mrsupercraft/mastering-state-management-with-zustand-in-nextjs-and-react-1g26](https://dev.to/mrsupercraft/mastering-state-management-with-zustand-in-nextjs-and-react-1g26)
-8. Setting up Vitest for Next.js 15 \- Wisp CMS, accessed July 7, 2025, [https://www.wisp.blog/blog/setting-up-vitest-for-nextjs-15](https://www.wisp.blog/blog/setting-up-vitest-for-nextjs-15)
-9. Top Nextjs Tools & Templates for Next-Gen Developers \- Peerlist, accessed July 7, 2025, [https://peerlist.io/sanjayjoshi/articles/top-nextjs-tools-for-next-gen-developers](https://peerlist.io/sanjayjoshi/articles/top-nextjs-tools-for-next-gen-developers)
-10. Next.js Data Fetching Cheatsheet \- Codecademy, accessed July 7, 2025, [https://www.codecademy.com/learn/learn-next-js/modules/next-js-data-fetching/cheatsheet](https://www.codecademy.com/learn/learn-next-js/modules/next-js-data-fetching/cheatsheet)
-11. Fetching Data \- App Router \- Next.js, accessed July 7, 2025, [https://nextjs.org/learn/dashboard-app/fetching-data](https://nextjs.org/learn/dashboard-app/fetching-data)
-12. Data Fetching Next.js 15\. 1- Data Fetching and Caching | by ..., accessed July 7, 2025, [https://medium.com/@ademyalcin27/data-fetching-next-js-15-559487770c9b](https://medium.com/@ademyalcin27/data-fetching-next-js-15-559487770c9b)
-13. Data Fetching in Next 15 · vercel next.js · Discussion \#76594 \- GitHub, accessed July 7, 2025, [https://github.com/vercel/next.js/discussions/76594](https://github.com/vercel/next.js/discussions/76594)
-14. Next.js 15 Tutorial \- 68 \- Fetching Data in Server Components \- YouTube, accessed July 7, 2025, [https://www.youtube.com/watch?v=WKfPctdIDek](https://www.youtube.com/watch?v=WKfPctdIDek)
-15. Next.js 15, accessed July 7, 2025, [https://nextjs.org/blog/next-15](https://nextjs.org/blog/next-15)
-16. Master the 2025 Stack: Complete Guide to Next.js 15, React 19, Tailwind v4 & Shadcn/ui : r/nextjs \- Reddit, accessed July 7, 2025, [https://www.reddit.com/r/nextjs/comments/1jt9i3m/master_the_2025_stack_complete_guide_to_nextjs_15/](https://www.reddit.com/r/nextjs/comments/1jt9i3m/master_the_2025_stack_complete_guide_to_nextjs_15/)
-17. Intro to State Management with Next.JS App Router, accessed July 7, 2025, [https://www.pronextjs.dev/tutorials/state-management/intro-to-state-management-with-next-js-app-router](https://www.pronextjs.dev/tutorials/state-management/intro-to-state-management-with-next-js-app-router)
-18. Using State in Next.js: A Comprehensive Guide | by Shiv Technolabs Pvt. Ltd. | Medium, accessed July 7, 2025, [https://medium.com/@shivtechnolabs/using-state-in-next-js-a-comprehensive-guide-d73660a453e3](https://medium.com/@shivtechnolabs/using-state-in-next-js-a-comprehensive-guide-d73660a453e3)
-19. State Management in 2025: When to Use Context, Redux, Zustand, or Jotai, accessed July 7, 2025, [https://dev.to/hijazi313/state-management-in-2025-when-to-use-context-redux-zustand-or-jotai-2d2k](https://dev.to/hijazi313/state-management-in-2025-when-to-use-context-redux-zustand-or-jotai-2d2k)
-20. Zustand vs. Redux Toolkit vs. Jotai | Better Stack Community, accessed July 7, 2025, [https://betterstack.com/community/guides/scaling-nodejs/zustand-vs-redux-toolkit-vs-jotai/](https://betterstack.com/community/guides/scaling-nodejs/zustand-vs-redux-toolkit-vs-jotai/)
-21. Comparison — Jotai, primitive and flexible state management for React, accessed July 7, 2025, [https://jotai.org/docs/basics/comparison](https://jotai.org/docs/basics/comparison)
-22. Comparison \- Zustand, accessed July 7, 2025, [https://zustand.docs.pmnd.rs/getting-started/comparison](https://zustand.docs.pmnd.rs/getting-started/comparison)
-23. App Router: CSS Styling | Next.js, accessed July 7, 2025, [https://nextjs.org/learn/dashboard-app/css-styling](https://nextjs.org/learn/dashboard-app/css-styling)
-24. What's your preferred styling stack with Next.js (v15)? Tailwind \+ shadcn, DaisyUI, or something else? : r/nextjs \- Reddit, accessed July 7, 2025, [https://www.reddit.com/r/nextjs/comments/1k6rfmp/whats_your_preferred_styling_stack_with_nextjs/](https://www.reddit.com/r/nextjs/comments/1k6rfmp/whats_your_preferred_styling_stack_with_nextjs/)
-25. Testing in Next.js \- What Should I Know? \- Wisp CMS, accessed July 7, 2025, [https://www.wisp.blog/blog/testing-in-nextjs-what-should-i-know](https://www.wisp.blog/blog/testing-in-nextjs-what-should-i-know)
-26. Essential Tools and Best Practices for Testing Next.js Applications \- MoldStud, accessed July 7, 2025, [https://moldstud.com/articles/p-essential-tools-and-best-practices-for-testing-nextjs-applications](https://moldstud.com/articles/p-essential-tools-and-best-practices-for-testing-nextjs-applications)
-27. How You Should Test Your Next.js 15 Apps \- YouTube, accessed July 7, 2025, [https://www.youtube.com/watch?v=p9c88fjWAtw](https://www.youtube.com/watch?v=p9c88fjWAtw)
-28. Playwright vs Cypress \- Detailed comparison \[2024\] | Checkly, accessed July 7, 2025, [https://www.checklyhq.com/learn/playwright/playwright-vs-cypress/](https://www.checklyhq.com/learn/playwright/playwright-vs-cypress/)
-29. Playwright Vs Cypress For End-to-End Testing: Which Is Better \- TestingXperts, accessed July 7, 2025, [https://www.testingxperts.com/blog/playwright-vs-cypress/](https://www.testingxperts.com/blog/playwright-vs-cypress/)
-30. Playwright vs. Cypress \- comparison of E2E testing frameworks | Matthew Gorzelinski, accessed July 7, 2025, [https://gorzelinski.com/blog/playwright-vs-cypress-comparison-of-e2e-testing-frameworks/](https://gorzelinski.com/blog/playwright-vs-cypress-comparison-of-e2e-testing-frameworks/)
-31. Deciding between Playwright vs Cypress : r/QualityAssurance \- Reddit, accessed July 7, 2025, [https://www.reddit.com/r/QualityAssurance/comments/1437c5d/deciding_between_playwright_vs_cypress/](https://www.reddit.com/r/QualityAssurance/comments/1437c5d/deciding_between_playwright_vs_cypress/)
-32. Cypress vs Playwright side-by-side coding comparison. \- YouTube, accessed July 7, 2025, [https://www.youtube.com/watch?v=4W7TWu8NmTM](https://www.youtube.com/watch?v=4W7TWu8NmTM)
-33. Cypress vs Playwright: A Detailed Comparison \- LambdaTest, accessed July 7, 2025, [https://www.lambdatest.com/blog/cypress-vs-playwright/](https://www.lambdatest.com/blog/cypress-vs-playwright/)
-34. Playwright vs Cypress: A Comprehensive Comparison \- Luxe Quality, accessed July 7, 2025, [https://luxequality.com/blog/playwright-vs-cypress/](https://luxequality.com/blog/playwright-vs-cypress/)
-35. Just use this Next.js Eslint Configuration \- DEV Community, accessed July 7, 2025, [https://dev.to/jordanahaines/just-use-this-nextjs-eslint-configuration-540](https://dev.to/jordanahaines/just-use-this-nextjs-eslint-configuration-540)
-36. Proper eslint configuration under NextJS 15 \- Stack Overflow, accessed July 7, 2025, [https://stackoverflow.com/questions/79119287/proper-eslint-configuration-under-nextjs-15](https://stackoverflow.com/questions/79119287/proper-eslint-configuration-under-nextjs-15)
-37. ixartz/Next-js-Boilerplate: Boilerplate and Starter for Next.js ... \- GitHub, accessed July 7, 2025, [https://github.com/ixartz/Next-js-Boilerplate](https://github.com/ixartz/Next-js-Boilerplate)
-38. Configuration: TypeScript \- Next.js, accessed July 7, 2025, [https://nextjs.org/docs/pages/api-reference/config/typescript](https://nextjs.org/docs/pages/api-reference/config/typescript)
-39. Next.js configuration (next.config.(mjs|ts)) \- Next.js 15 Tutorial | chris.lu, accessed July 7, 2025, [https://chris.lu/web_development/tutorials/next-js-static-first-mdx-starterkit/next-config](https://chris.lu/web_development/tutorials/next-js-static-first-mdx-starterkit/next-config)
-40. Configuration: ESLint \- Next.js, accessed July 7, 2025, [https://nextjs.org/docs/app/api-reference/config/eslint](https://nextjs.org/docs/app/api-reference/config/eslint)
-41. Next JS TypeScript Boilerplate: Quick Start Guide, accessed July 7, 2025, [https://nextjsstarter.com/blog/next-js-typescript-boilerplate-quick-start-guide/](https://nextjsstarter.com/blog/next-js-typescript-boilerplate-quick-start-guide/)
-42. tsconfig.json \- AnwarHossainSR/nextjs-15-template \- GitHub, accessed July 7, 2025, [https://github.com/AnwarHossainSR/nextjs-15-template/blob/main/tsconfig.json](https://github.com/AnwarHossainSR/nextjs-15-template/blob/main/tsconfig.json)
+# Styling And Assets
+
+- Use CSS Modules, Tailwind CSS, or CSS-in-JS solutions
+- Use the built-in `<Image />` component for optimized images
+- Consider built-in font optimization with `@next/font` or newer APIs
+
+# Performance
+
+- Use streaming and `Suspense` for faster initial rendering
+- Dynamically import large dependencies in Client Components
+- Use `React.useMemo` and `React.useCallback` in Client Components to avoid re-renders
+- Use `fetch` caching and revalidation carefully
+
+# Deployment
+
+- Use Vercel for integrated features or self-host with Node or Docker
+- Test SSR and static outputs thoroughly
+- Keep environment variables secure, never expose private values on the client
+
+# Testing And Linting
+
+- Use `next lint` with ESLint and integrate Prettier
+- Use Jest, React Testing Library, or Cypress for testing
+- Keep test files near related components
+
+# Dos
+
+- Do organize routes and components in the `app` directory
+- Do leverage Server Components for data fetching
+- Do use Server Actions for form submissions
+- Do use `next/link` for internal routing and prefetching
+- Do implement loading states with `loading` files
+- Do optimize images with the `<Image />` component
+- Do separate server and client logic carefully
+
+# Donts
+
+- Dont mix the `pages` and `app` directories for routing
+- Dont fetch data in Client Components if it can be done on the server
+- Dont use `router.push` for form submissions when Server Actions are available
+- Never expose sensitive environment variables in client code
+- Dont import client-only modules into Server Components
+- Avoid using `next/router` in App Router projects
