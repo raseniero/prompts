@@ -2,9 +2,9 @@
 trigger: manual
 ---
 
-# Instructions for Branching and Merging Strategy
+# Instructions for Git Workflow
 
-This is a set of instructions to the AI Code Generator, regarding the branching and merging strategy when making code changes.
+This is a set of instructions to the AI Code Generator, regarding the Git Workflow.
 
 ## Tools and Commands available for use
 
