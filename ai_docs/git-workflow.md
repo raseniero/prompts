@@ -52,4 +52,5 @@ gh pr create
 * Push repo to Github.
 * Create a PR from the feature branch to the `main` branch.
 * Assign the PR to the configured git user or email in the computer.
+* Provide a link to the PR for the user to easily navigate.
 * Pause for PR Review and Approval.
